@@ -1,0 +1,19 @@
+CREATE DATABASE gestao_frota;
+
+USE gestao_frota
+
+CREATE TABLE `gestao_frota`.`veiculo` (
+  `idveiculo` INT NOT NULL AUTO_INCREMENT,
+  `nome` VARCHAR(150) NULL,
+  `marca` VARCHAR(45) NULL,
+  `modelo` VARCHAR(45) NULL,
+  `ano` VARCHAR(45) NULL,
+  `status_bateria` INT NULL,
+  `usuario_cadastro` INT NULL,
+  `usuario_atualizacao` INT NULL,
+  `usuario_exclusao` INT NULL,
+  `datahora_cadastro` DATETIME NULL,
+  `datahora_atualizacao` DATETIME NULL,
+  `datahora_exclusao` DATETIME NULL,
+  `ativo` INT NULL DEFAULT 1,
+  PRIMARY KEY (`idveiculo`));
