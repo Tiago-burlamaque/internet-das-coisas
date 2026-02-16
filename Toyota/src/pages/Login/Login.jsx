@@ -1,4 +1,4 @@
-import {useAuth} from '../../context/AuthContext'
+import { useAuth } from '../../context/AuthContext'
 import axios from "axios"
 import { useState, useEffect } from "react"
 import { Link, useNavigate } from "react-router"
@@ -13,7 +13,7 @@ function LoginForm() {
 
   const navigate = useNavigate()
 
-   useEffect(() => {
+  useEffect(() => {
     if (user) {
       navigate('/home');
     }
@@ -24,10 +24,10 @@ function LoginForm() {
     e.preventDefault();
 
     try {
-      const response = await axios.get('http://localhost:3000/usuarios', {
-        params: { email, senha },
-      });
-
+      const response = await axios.post(
+        "http://localhost:3000/usuario/login",
+        { email, senha }
+      );
       console.log("resposta", response)
       if (response.data.length === 0) {
         toast.error('Usuário não encontrado. Verifique o e-mail e senha.', {
@@ -37,13 +37,16 @@ function LoginForm() {
         return;
       }
 
-      login(email); // <-- atualiza contexto
-      toast.success('Login realizado com sucesso!', { autoClose: 2000 });
+      login(email);
+      toast.success("Login realizado com sucesso!");
+      navigate("/home");
 
-      setTimeout(() => navigate('/home'), 2000);
     } catch (error) {
-      console.error('Erro ao verificar o usuário:', error);
-      toast.error('Erro ao conectar com o servidor.', { autoClose: 2000 });
+      if (error.response?.status === 401) {
+        toast.error("Email ou senha inválidos");
+      } else {
+        toast.error("Erro no servidor");
+      }
     }
   };
 
@@ -67,14 +70,14 @@ function LoginForm() {
             <input type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className='border border-white outline-2 w-70 p-2 focus:outline-red-400 focus:border-red-500 rounded text-white'
+              className='border border-white outline-2 w-70 p-2 focus:outline-red-400 focus:border-red-500 rounded text-white font-bold'
               required />
 
             <label htmlFor="senha" className='font-bold text-red-500'>Senha</label>
             <input type="password"
               value={senha}
               onChange={(e) => setSenha(e.target.value)}
-              className='border border-white outline-2 w-70 p-2 focus:outline-red-400 focus:border-red-500 rounded text-white'
+              className='border border-white outline-2 w-70 p-2 focus:outline-red-400 focus:border-red-500 rounded text-white font-bold'
               required />
 
             <button className='text-black border bg-white p-3 w-100 rounded font-bold cursor-pointer hover:border-red-500 hover:bg-red-500 hover:text-white transition duration-300 mt-3'>Entrar</button>

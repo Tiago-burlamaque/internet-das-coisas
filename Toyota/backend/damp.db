@@ -1,27 +1,59 @@
 CREATE DATABASE gestao_frota;
 
-USE gestao_frota
+USE gestao_frota;
 
-CREATE TABLE `gestao_frota`.`veiculo` (
-  `idveiculo` INT NOT NULL AUTO_INCREMENT,
-  `nome` VARCHAR(150) NULL,
-  `marca` VARCHAR(45) NULL,
-  `modelo` VARCHAR(45) NULL,
-  `ano` VARCHAR(45) NULL,
-  `status_bateria` INT NULL,
-  `usuario_cadastro` INT NULL,
-  `usuario_atualizacao` INT NULL,
-  `usuario_exclusao` INT NULL,
-  `datahora_cadastro` DATETIME NULL,
-  `datahora_atualizacao` DATETIME NULL,
-  `datahora_exclusao` DATETIME NULL,
-  `ativo` INT NULL DEFAULT 1,
-  PRIMARY KEY (`idveiculo`));
+CREATE TABLE veiculo (
+  idveiculo INT NOT NULL AUTO_INCREMENT,
+  nome VARCHAR(150) NOT NULL,
+  marca VARCHAR(100),
+  modelo VARCHAR(100),
+  ano INT,
+  status_bateria INT,
 
-CREATE TABLE `gestao_frota`.`usuario` (
-  `idusuario` INT NOT NULL AUTO_INCREMENT,
-  `nome` VARCHAR(45) NULL,
-  `email` VARCHAR(150) NULL,
-  `senha` VARCHAR(45) NULL,
-  `ativo` INT NULL DEFAULT 1,
-  PRIMARY KEY (`idusuario`));
+  usuario_cadastro INT,
+  usuario_atualizacao INT,
+  usuario_exclusao INT,
+
+  datahora_cadastro DATETIME DEFAULT CURRENT_TIMESTAMP,
+  datahora_atualizacao DATETIME,
+  datahora_exclusao DATETIME,
+
+  ativo TINYINT DEFAULT 1,
+
+  PRIMARY KEY (idveiculo),
+
+  CONSTRAINT fk_veiculo_usuario_cadastro
+    FOREIGN KEY (usuario_cadastro)
+    REFERENCES usuario(idusuario),
+
+  CONSTRAINT fk_veiculo_usuario_atualizacao
+    FOREIGN KEY (usuario_atualizacao)
+    REFERENCES usuario(idusuario),
+
+  CONSTRAINT fk_veiculo_usuario_exclusao
+    FOREIGN KEY (usuario_exclusao)
+    REFERENCES usuario(idusuario)
+);
+
+CREATE TABLE usuario (
+  idusuario INT NOT NULL AUTO_INCREMENT,
+  nome VARCHAR(100) NOT NULL,
+  email VARCHAR(150) NOT NULL UNIQUE,
+  senha VARCHAR(255) NOT NULL,
+  ativo TINYINT DEFAULT 1,
+  PRIMARY KEY (idusuario)
+);
+  
+CREATE TABLE log_sistema (
+    idlog INT AUTO_INCREMENT PRIMARY KEY,
+    acao VARCHAR(50) NOT NULL,
+    descricao TEXT,
+    usuario INT,
+    datahora DATETIME DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT fk_log_usuario
+      FOREIGN KEY (usuario)
+      REFERENCES usuario(idusuario)
+);
+
+

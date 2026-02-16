@@ -12,26 +12,24 @@ function Register() {
 
   const handleRegister = async(e) => {
     e.preventDefault()
-
-    try {
-      await axios.post('http://localhost:3000/usuario', { nome, email, senha });
-
-      
-      
-      toast.success('Usuário criado com sucesso!', {
-        // position: toast.POSITION.TOP_CENTER,
-        autoClose: 2000,
-        hideProgressBar: true,
-      });
-      navigate("/")
-    } catch (error) {
-      console.error('Erro ao criar usuário:', error);
-      toast.error('Erro ao criar o usuário!', {
-        // position: toast.POSITION.TOP_RIGHT,
-        autoClose: 2000,
-        hideProgressBar: true,
-      });
+    if(!setNome && !setEmail && !setSenha) {
+      toast.warning("Preencha os campos")
+      return
     }
+    await axios.post("http://localhost:3000/usuario", {
+      nome: nome,
+      email: email,
+      senha: senha
+    })
+    .then(function(res) {
+      console.log(res);
+      toast.success("Usuário cadastro!!!")
+      navigate("/")
+    })
+    .catch(function (error) {
+      console.log(error);
+      
+    })
 
   }
   return (
@@ -49,19 +47,19 @@ function Register() {
             <input type="text"
               value={nome}
               onChange={(e) => setNome(e.target.value)}
-              className='border border-white outline-2 w-70 p-2 focus:outline-red-400 focus:border-red-500 rounded text-white' />
+              className='border border-white outline-2 w-70 p-2 focus:outline-red-400 focus:border-red-500 rounded text-white font-bold' />
 
             <label htmlFor="" className='font-bold text-white'>Email</label>
             <input type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className='border border-white outline-2 w-70 p-2 focus:outline-red-400 focus:border-red-500 rounded text-white' />
+              className='border border-white outline-2 w-70 p-2 focus:outline-red-400 focus:border-red-500 rounded text-white font-bold' />
 
             <label htmlFor="" className='font-bold text-white'>Senha</label>
             <input type="password"
               value={senha}
               onChange={(e) => setSenha(e.target.value)}
-              className='border border-white outline-2 w-70 p-2 focus:outline-red-400 focus:border-red-500 rounded text-white' />
+              className='border border-white outline-2 w-70 p-2 focus:outline-red-400 focus:border-red-500 rounded text-white font-bold' />
 
             <button className='text-black border bg-white p-3 w-100 rounded font-bold cursor-pointer hover:border-red-500 hover:bg-red-500 hover:text-white transition duration-300 mt-3'
               onSubmit={handleRegister}>Registrar</button>
