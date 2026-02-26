@@ -1,10 +1,18 @@
-import { useState, useEffect } from "react"
-import { getProdutos } from "../../services/produto"
-import ModalProduto from "./ModalProduto"
-import EditarProduto from "./EditarProduto"
+
+import { useEffect, useState } from "react";
+import {
+  getProdutos,
+  adicionarProduto,
+  editarProduto,
+  excluirProduto
+} from "../../services/produto.js";
+
+import ModalProduto from "./ModalProduto";
+import EditarProduto from "./EditarProduto";
+import axios from "axios";
+import { toast } from "react-toastify";
 
 const Produtos = () => {
-
   // Lista que vem do backend (array de produtos)  
   const [produtos, setProdutos] = useState([]);
 
@@ -29,7 +37,7 @@ const Produtos = () => {
   const carregarProdutos = async () => {
     try {
       const lista = await getProdutos();
-      setProdutos(lista.data); // lista é array  
+      setProdutos(lista); // lista é array  
     } catch (error) {
       console.log("Erro ao carregar produtos:", error);
       setProdutos([]); // garante que a tabela não quebre  
@@ -53,7 +61,7 @@ const Produtos = () => {
     setDescricaoEdit(produto.descricao ?? "");
     setValorEdit(produto.valor ?? "");
 
-    setModal(true);  // Abre o modal
+    setModal(true);
   };
 
   /**  
@@ -75,91 +83,123 @@ const Produtos = () => {
     setProdutoSelecionado(null);
   };
 
+  /**  
+   * Salvar faz duas coisas dependendo do modo:  
+   * - add  -> POST  
+   * - edit -> PATCH  
+   */
   const salvar = async () => {
     try {
+      // Monta o payload do jeito que o backend espera  
       const payload = {
-        nomeProduto: tituloEdit,
-        descricaoEdit: descricaoEdit,
-        valorEdit: Number(valorEdit) > 0 ? valorEdit : 0
-      }
+        nome: tituloEdit,
+        descricao: descricaoEdit,
+        // converte para número; se vier vazio, vira 0 (você pode validar se quiser)  
+        valor: Number(valorEdit),
+      };
 
       if (modo === "add") {
         const ok = await adicionarProduto(payload);
-        if (!ok)
-          console.log("Não foi possivel adicionar o produto.");
-        return;
+        if (!ok) {
+          console.log("Não foi possível adicionar o produto");
+          return;
+        }
       } else {
-        if (!produtoSelecionado.id){
-          console.log("Nenhum produto selecionado");
-        return
+        // modo edit: precisa ter um produto selecionado  
+        if (!produtoSelecionado?.id) {
+          console.log("Nenhum produto selecionado para editar");
+          return;
+        }
+
+        const ok = await editarProduto(produtoSelecionado.id, payload);
+        if (!ok) {
+          console.log("Não foi possível editar o produto");
+          return;
+        }
       }
 
-      const ok = EditarProduto(produtoSelecionado.id, payload)
-      if(!ok)
-        console.log("Não foi possivel editar o produto.");
-        return
+      // Depois de adicionar/editar, recarregamos do backend (mais simples e confiável)  
+      await carregarProdutos();
 
+      fecharModal();
+    } catch (e) {
+      console.log("Erro ao salvar:", e);
     }
+  };
 
-    await carregarProdutos()
-    fecharModal()
+  async function removerLanche(id) {
+    try {
+      const excluido = await excluirProduto(id);
+      if(excluido === ""){
+        toast.error("Não deu bom pra excluir professora.")
+        return false
+      }
+      toast.success("Deu bom, excluiu o produto.")
+
+      carregarProdutos()
     } catch (error) {
-    console.log('Erro: ', error);
-    
+      toast.error("Erro ao excluir produto.")
+      console.log("Erro: ", error);      
+    }
   }
-}
+  return (
+    <div className="container">
+      <h2>Produtos Dourado Lanches</h2>
 
+      <button className="btn btn-warning" onClick={abrirModalAdicionar}>
+        Adicionar
+      </button>
 
-return (
-  <>
-    <h1 className="text-3xl font-bold">Dourado Lanches</h1>
+      <br />
+      <br />
 
-    <button className="border p-2 rounded border-white hover:border-blue-500 transition cursor-pointer" onClick={abrirModalAdicionar}>Adicionar</button>
+      <table className="table table-bordered">
+        <thead>
+          <tr>
+            <th>Nome</th>
+            <th>Descrição</th>
+            <th>Preço</th>
+            <th>Ação</th>
+          </tr>
+        </thead>
 
-    <table>
-      <thead>
-        <tr className="flex flex-row gap-42">
-          <th className="border p-2">Nome</th>
-          <th className="border p-2">Descrição</th>
-          <th className="border p-2">Valor</th>
-          <th className="border p-2">Ações</th>
-        </tr>
-      </thead>
-
-      <tbody>
-        {
-          produtos.map((p) => (
+        <tbody>
+          {produtos && produtos.map((p) => (
             <tr key={p.id}>
               <td>{p.nome}</td>
               <td>{p.descricao}</td>
               <td>{p.valor}</td>
               <td>
-                <button onClick={() => abrirModalEditar(p)} className="border border-white hover:border-blue-500 p-2 cursor-pointer rounded bg-blue-500">Editar</button>
-                <button onClick={() => remover(p.id)} className="p-2 cursor-pointer rounded bg-red-500 border border-white hover:border-red-500 ml-5" >Deletar</button>
+                <button className="btn btn-primary" onClick={() => abrirModalEditar(p)}>
+                  Editar
+                </button>
+                &nbsp;
+                <button className="btn btn-danger" onClick={() => removerLanche(p.id)}>
+                  Excluir
+                </button>
               </td>
             </tr>
-          ))
-        }
-      </tbody>
-    </table>
+          ))}
+        </tbody>
+      </table>
 
-    <ModalProduto
-      open={modal}
-      onClose={fecharModal}
-      onSave={salvar}
-      title={modo === "add" ? "Adicionar produto" : produtoSelecionado?.nome}
-    >
-      <EditarProduto
-        titulo={tituloEdit}
-        descricao={descricaoEdit}
-        valor={valorEdit}
-        onChangeDescricao={setDescricaoEdit}
-        onChangeTitulo={setTituloEdit}
-        onChangeValor={setValorEdit}
-      />
-    </ModalProduto>
-  </>
-)
-}
+      <ModalProduto
+        open={modal}
+        onClose={fecharModal}
+        onSave={salvar}
+        title={modo === "add" ? "Adicionar produto" : (produtoSelecionado?.nome ?? "Editar produto")}
+      >
+        <EditarProduto
+          titulo={tituloEdit}
+          descricao={descricaoEdit}
+          valor={valorEdit}
+          onChangeTitulo={setTituloEdit}
+          onChangeDescricao={setDescricaoEdit}
+          onChangeValor={setValorEdit}
+        />
+      </ModalProduto>
+    </div>
+  );
+};
 
-export default Produtos
+export default Produtos;
