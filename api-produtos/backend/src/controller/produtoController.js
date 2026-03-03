@@ -56,7 +56,7 @@ export const adicionarProduto = async (req, res) => {
         const valor = req.body.valor;
         const descricao = req.body.descricao
 
-        const [results] = await db.query('INSERT INTO produto (nome, valor, descricao) VALUES (?, ?, ?)', [nome, valor, descricao])
+        const [results] = await db.query('INSERT INTO produto (nome, valor, descricao, ativo) VALUES (?, ?, ?, ?)', [nome, valor, descricao, 1])
         
         if (results.affectedRows === 0) { // Produto não foi afetado
             return res.status(400).json({ message: "Produto não encontrado." })
