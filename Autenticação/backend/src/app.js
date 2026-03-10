@@ -2,6 +2,7 @@ import express from 'express'
 import cors from 'cors'
 import usuarioRouter from './routes/usuarioRouter.js'
 import { loginRouter } from './routes/loginRouter.js'
+import router from './routes/produto.js'
 
 const app = express()
 
@@ -10,6 +11,7 @@ app.use(express.json())
 
 app.use(usuarioRouter)
 app.use(loginRouter)
+app.use(router)
 
 app.get('/', (req, res) => {
     res.send("Teste")

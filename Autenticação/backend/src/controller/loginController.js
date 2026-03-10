@@ -10,10 +10,10 @@ export const loginUser = async (req, res) => {
         const { email, senha } = req.body;
 
         if (email === "" || senha === "") {
-            return res.status(400).json({ Message: "Email ou senha inválidos. São campos obrigatórios." })
+            return res.status(400).json({ Message: "Email ou senha inválidos. São campos obrigatórios." , success: false})
         }
 
-        const [rows] = await db.query("SELECT id, nome_completo, email, senha, tipo_usuario FROM usuario WHERE email = ? AND ativo = 1 LIMIT 1", [email])
+        const [rows] = await db.query("SELECT id, nome, email, senha, tipo_usuario FROM usuario WHERE email = ? AND ativo = 1 LIMIT 1", [email])
 
         if (rows.length === 0) {
             return res.status(401).json({ Message: "Credênciais inválidas" })
